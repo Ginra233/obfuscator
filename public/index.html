@@ -1,0 +1,401 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>⚡ JS Obfuscator — Seren Hexa</title>
+
+<style>
+/* ---------- RESET & BASE ---------- */
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial;
+  background:#02040a;
+  color:#e6f7ff;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+}
+
+/* ---------- STARFIELD + PARTICLES ---------- */
+#starfield{position:fixed; inset:0; z-index:0; pointer-events:none;}
+#stars{position:absolute; inset:0; opacity:.06; filter:blur(.3px);
+  background:
+    radial-gradient(#ffffff 0.8px, transparent 0.8px) 0 0/90px 90px,
+    radial-gradient(#ffffff 0.55px, transparent 0.55px) 45px 45px/90px 90px;
+  animation: starMove 60s linear infinite;
+}
+@keyframes starMove{to{transform:translateY(-200px) translateX(120px)}}
+
+/* subtle nebula */
+#nebula{position:fixed; inset:0; z-index:0; pointer-events:none;
+  background:
+    radial-gradient(ellipse at 10% 20%, rgba(74,208,255,0.05), transparent 12%),
+    radial-gradient(ellipse at 80% 10%, rgba(30,144,255,0.03), transparent 10%);
+}
+
+/* ---------- CONTAINER ---------- */
+.container{
+  position:relative; z-index:2; width:580px; max-width:96%;
+  border-radius:14px; padding:20px;
+  background:linear-gradient(180deg, rgba(6,10,18,0.86), rgba(2,6,12,0.72));
+  border:1px solid rgba(30,144,255,0.06);
+  box-shadow:0 12px 50px rgba(5,12,28,0.75), 0 0 50px rgba(30,144,255,0.04);
+  backdrop-filter: blur(8px);
+}
+
+/* ---------- HEADER / LOGO ---------- */
+.header{
+  display:flex; gap:14px; align-items:center; justify-content:space-between; margin-bottom:10px;
+}
+.brand{display:flex; gap:14px; align-items:center;}
+.logoWrap{width:70px; height:70px; border-radius:14px; display:flex; align-items:center; justify-content:center;
+  background:linear-gradient(135deg,#041c33,#082233); border:1px solid rgba(74,208,255,0.08);
+  box-shadow: 0 8px 28px rgba(30,144,255,0.06), inset 0 -8px 20px rgba(0,0,0,0.5);
+  transform-origin:center;
+  overflow:visible;
+}
+.logoSVG{ width:48px; height:48px; filter: drop-shadow(0 0 10px rgba(30,144,255,0.9)); animation: logoFloat 6s ease-in-out infinite;}
+@keyframes logoFloat{0%{transform:translateY(0) rotate(0deg)}50%{transform:translateY(-4px) rotate(8deg)}100%{transform:translateY(0) rotate(0deg)}}
+
+.title{display:flex;flex-direction:column;}
+.title .name{font-weight:800;font-size:18px;color:transparent;background:linear-gradient(90deg,#7be6ff,#1e90ff);-webkit-background-clip:text;}
+.title .tag{font-size:12px;color:#9ec8e8;opacity:.9;margin-top:3px}
+
+/* ---------- RIGHT INFO (metrics) ---------- */
+.infoBlock{display:flex; gap:12px; align-items:center;}
+
+/* server indicator */
+.indicator{width:12px;height:12px;border-radius:50%;background:#ff4a4a;box-shadow:0 0 8px rgba(255,74,74,0.18);transition:all .18s ease;}
+.indText{font-weight:700;font-size:12px;color:#cfeeff;text-transform:uppercase;letter-spacing:0.5px}
+
+/* metrics small chips */
+.chips{display:flex;gap:8px;align-items:center;}
+.chip{background:rgba(255,255,255,0.02);padding:6px 8px;border-radius:10px;border:1px solid rgba(255,255,255,0.03);font-size:12px;color:#bfeaff;}
+
+/* ---------- FORM / CONTROLS ---------- */
+.grid{display:grid;grid-template-columns:2fr 1fr;gap:12px;margin-top:8px;}
+.formLeft{display:flex;flex-direction:column;gap:8px}
+.formRight{display:flex;flex-direction:column;gap:8px}
+
+label{font-size:12px;color:#9ec8e8;margin-top:6px}
+.input, select, .btn{
+  width:100%; padding:10px 12px; border-radius:10px; border:1px solid rgba(255,255,255,0.03);
+  background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  color:#eaf7ff;font-size:14px; outline:none;
+}
+.input[type=file]::file-selector-button{
+  margin-right:8px;padding:7px 10px;border-radius:8px;border:none;background:linear-gradient(90deg,#1e90ff,#4ad0ff);color:#002233;font-weight:800;cursor:pointer;
+}
+.selectRow{display:flex;gap:8px;align-items:center}
+.toggle{display:inline-flex;align-items:center;gap:8px;padding:6px 8px;border-radius:10px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.03);}
+
+/* ---------- START BUTTON ---------- */
+.btn{cursor:pointer;font-weight:900;color:#00171a;background:linear-gradient(90deg,#00e1ff,#1e90ff);box-shadow:0 8px 30px rgba(30,144,255,0.08)}
+.btn:hover{transform:translateY(-3px);box-shadow:0 18px 40px rgba(30,144,255,0.14)}
+
+/* ---------- PROGRESS & TRAIL ---------- */
+.progressWrap{margin-top:12px;display:flex;flex-direction:column;gap:10px}
+.progressBar{height:14px;border-radius:10px;overflow:hidden;background:linear-gradient(180deg,#031226,#051733);border:1px solid rgba(255,255,255,0.03);position:relative}
+.progressFill{height:100%;width:0%;background:linear-gradient(90deg,#7be6ff,#1e90ff,#7be6ff);box-shadow:inset 0 6px 30px rgba(30,144,255,0.06);transition:width .35s ease;background-size:220% 100%;animation:fillMove 3s linear infinite}
+@keyframes fillMove{0%{background-position:0% 50%}100%{background-position:220% 50%}}
+.trail{position:absolute;right:0;top:-6px;height:6px;width:48px;background:linear-gradient(90deg,#1e90ff,#7be6ff);border-radius:4px;filter:blur(6px);opacity:0.9;transform:translateX(40px);transition:transform .35s linear}
+
+/* ---------- TECH RING ---------- */
+.ringWrap{text-align:center;margin-top:6px}
+.ring{width:82px;height:82px;border-radius:50%;position:relative;background:conic-gradient(from 100deg, rgba(30,144,255,0.12), rgba(74,208,255,0.16));box-shadow:0 10px 40px rgba(30,144,255,0.06);opacity:0;transform:scale(.9);transition:opacity .2s, transform .25s}
+.ring.active{opacity:1;transform:scale(1);animation:spinFast 1.6s linear infinite}
+@keyframes spinFast{to{transform:rotate(360deg)}}
+.ring::after{content:"";position:absolute;inset:12px;border-radius:50%;background:rgba(0,0,0,0.45);box-shadow:inset 0 0 10px rgba(0,0,0,0.6)}
+
+/* ---------- STATUS MESSAGE & DOWNLOAD ---------- */
+.statusMsg{text-align:center;color:#bfe9ff;font-size:13px;min-height:20px;margin-top:6px}
+.downloadWrap{text-align:center;margin-top:12px}
+
+/* ---------- FOOTER small text ---------- */
+.footer{margin-top:10px;text-align:center;color:#7da2c9;font-size:12px}
+
+/* ---------- COMPACT MOBILE ---------- */
+@media(max-width:620px){
+  .container{padding:14px;width:94%}
+  .grid{grid-template-columns:1fr}
+  .logoWrap{width:56px;height:56px}
+  .title .name{font-size:16px}
+}
+</style>
+</head>
+<body>
+<div id="starfield"><div id="nebula"></div><div id="stars"></div></div>
+
+<div class="container" role="main" aria-label="JS Obfuscator Seren • Engine">
+  <div class="header">
+    <div class="brand">
+      <div class="logoWrap" aria-hidden="true">
+        <!-- SVG logo inserted in Part 2 -->
+        <svg class="logoSVG" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" id="logoSVG">
+          <defs>
+            <linearGradient id="g1" x1="0" x2="1"><stop offset="0" stop-color="#7be6ff"/><stop offset="1" stop-color="#1e90ff"/></linearGradient>
+            <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+              <feGaussianBlur stdDeviation="3.5" result="coloredBlur"/>
+              <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+          </defs>
+          <g filter="url(#glow)">
+            <rect x="8" y="12" width="48" height="40" rx="8" fill="url(#g1)"></rect>
+            <path d="M20 28c4-6 12-6 16 0" fill="none" stroke="#00171a" stroke-width="3" stroke-linecap="round"></path>
+            <circle cx="32" cy="34" r="5" fill="#00171a"></circle>
+          </g>
+        </svg>
+      </div>
+
+      <div class="title">
+        <div class="name">JS Obfuscator</div>
+        <div class="tag">Cyber Enc Engine</div>
+      </div>
+    </div>
+
+    <div class="infoBlock">
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <div class="indicator" id="srvIndicator" aria-hidden="true"></div>
+          <div class="indText" id="srvText">OFFLINE</div>
+        </div>
+        <div class="chips">
+          <div class="chip" id="chipCpu">CPU: --</div>
+          <div class="chip" id="chipRam">RAM: --</div>
+          <div class="chip" id="chipUp">Uptime: --</div>
+        </div>
+      </div>
+    </div>
+  </div>
+ <!-- Part 2 continues below (controls + scripts) -->
+  <div class="grid">
+    <div class="formLeft">
+      <label for="file">📁 Pilih file .js</label>
+      <input id="file" class="input" type="file" accept=".js" />
+
+      <label for="password">🔐 Password (opsional)</label>
+      <input id="password" class="input" type="text" placeholder="Masukkan password (optional)" />
+
+      <div class="progressWrap" aria-hidden="true">
+        <div class="progressBar">
+          <div class="progressFill" id="progressFill"></div>
+          <div class="trail" id="trail"></div>
+        </div>
+        <div class="ringWrap"><div class="ring" id="techRing" aria-hidden="true"></div></div>
+      </div>
+
+      <div class="statusMsg" id="statusMsg">Ready — upload file .js lalu tekan Start.</div>
+      <div class="downloadWrap" id="downloadWrap"></div>
+    </div>
+
+    <div class="formRight">
+      <label for="preset">🎛️ Preset</label>
+      <select id="preset" class="input">
+        <option value="ultra">Ultra Enc</option>
+        <option value="nova">Nova Enc</option>
+        <option value="nebula">Nebula Enc</option>
+        <option value="arab">Arab Enc</option>
+        <option value="japan">Japan Enc</option>
+        <option value="xa">Arab×Japan</option>
+      </select>
+
+      <label>&nbsp;</label>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button id="startBtn" class="btn" style="flex:1;padding:12px">🚀 Start Obfuscation</button>
+        <div style="width:8px"></div>
+        <div class="toggle" style="align-items:center">
+          <input id="soundToggle" type="checkbox" checked />
+          <div style="font-size:12px;color:#9ec8e8">Sound</div>
+        </div>
+      </div>
+
+      <div style="height:8px"></div>
+
+      <label>Server Metrics</label>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div style="display:flex;gap:8px">
+          <div class="chip" style="flex:1" id="chipLoad">Load: --</div>
+          <div class="chip" style="flex:1" id="chipDisk">Disk: --</div>
+        </div>
+        <div class="chip" id="chipNote" style="font-size:12px">Metrics polled every 5s</div>
+      </div>
+
+      <div style="flex:1"></div>
+      <div class="footer">Run on your VPS • Keep keys off public servers</div>
+    </div>
+  </div>
+
+<!-- SCRIPTS PART (socket, UI, audio) -->
+<script src="/socket.io/socket.io.js"></script>
+<script>
+/* ---------- INIT DOM ---------- */
+const socket = io();
+const fileEl = document.getElementById('file');
+const presetEl = document.getElementById('preset');
+const pwdEl = document.getElementById('password');
+const startBtn = document.getElementById('startBtn');
+const progressFill = document.getElementById('progressFill');
+const trail = document.getElementById('trail');
+const techRing = document.getElementById('techRing');
+const statusMsg = document.getElementById('statusMsg');
+const downloadWrap = document.getElementById('downloadWrap');
+const srvIndicator = document.getElementById('srvIndicator');
+const srvText = document.getElementById('srvText');
+const chipCpu = document.getElementById('chipCpu');
+const chipRam = document.getElementById('chipRam');
+const chipUp = document.getElementById('chipUp');
+const chipLoad = document.getElementById('chipLoad');
+const chipDisk = document.getElementById('chipDisk');
+const soundToggle = document.getElementById('soundToggle');
+
+let soundEnabled = soundToggle.checked;
+soundToggle.addEventListener('change', ()=> soundEnabled = soundToggle.checked);
+
+/* ---------- AUDIO (WebAudio simple) ---------- */
+const AudioCtx = window.AudioContext || window.webkitAudioContext;
+let audioCtx;
+function beep(freq=880, duration=0.12, type='sine', vol=0.06){
+  if(!soundEnabled) return;
+  audioCtx = audioCtx || new AudioCtx();
+  const o = audioCtx.createOscillator();
+  const g = audioCtx.createGain();
+  o.type = type; o.frequency.value = freq;
+  g.gain.value = vol;
+  o.connect(g); g.connect(audioCtx.destination);
+  o.start(); g.gain.setTargetAtTime(0, audioCtx.currentTime + duration, 0.02);
+  setTimeout(()=>{ try{o.stop()}catch(e){} }, duration*1000+60);
+}
+
+/* ---------- SOCKET STATUS ---------- */
+function setServerOnline(on){
+  if(on){
+    srvIndicator.style.background = '#28d87c';
+    srvIndicator.style.boxShadow = '0 0 10px #28d87c66';
+    srvText.textContent = 'ONLINE';
+    srvText.style.color = '#cfeeff';
+  } else {
+    srvIndicator.style.background = '#ff4a4a';
+    srvIndicator.style.boxShadow = '0 0 8px #ff4a4a66';
+    srvText.textContent = 'OFFLINE';
+    srvText.style.color = '#ffb7b7';
+  }
+}
+setServerOnline(socket.connected);
+socket.on('connect', ()=>{ setServerOnline(true); statusMsg.textContent='Connected to server.'; });
+socket.on('disconnect', ()=>{ setServerOnline(false); statusMsg.textContent='Disconnected from server.'; });
+
+/* ---------- UI HELPERS ---------- */
+function setProgress(p){
+  progressFill.style.width = `${p}%`;
+  const trailPos = Math.max(0, Math.min(100, p));
+  trail.style.transform = `translateX(${trailPos * 4.6}px)`;
+}
+function showProcessing(on){
+  if(on) techRing.classList.add('active'); else techRing.classList.remove('active');
+}
+
+/* ---------- UPLOAD & START ---------- */
+startBtn.addEventListener('click', async () => {
+  const f = fileEl.files[0];
+  if(!f){ alert('Pilih file .js terlebih dahulu!'); return; }
+  startBtn.disabled = true;
+  downloadWrap.innerHTML = '';
+  statusMsg.textContent = 'Uploading file...';
+  setProgress(6); showProcessing(true);
+  try{
+    const form = new FormData(); form.append('file', f);
+    const r = await fetch('/upload', { method:'POST', body: form });
+    const json = await r.json();
+    if(!json.ok) throw new Error(json.error || 'Upload failed');
+    setProgress(12);
+    statusMsg.textContent = 'Upload complete. Starting obfuscation...';
+    socket.emit('start', { file: json.filename, preset: presetEl.value, password: pwdEl.value || '' });
+    beep(880,0.06,'sine',0.04);
+  }catch(err){
+    statusMsg.textContent = 'Upload error: ' + err.message;
+    showProcessing(false); startBtn.disabled = false; beep(200,0.18,'sawtooth',0.09);
+  }
+});
+
+/* ---------- SOCKET EVENTS (backend must emit these) ---------- */
+socket.on('progress', data => {
+  if(data.percent) setProgress(data.percent);
+  if(data.status) statusMsg.textContent = data.status;
+  if(data.download){
+    downloadWrap.innerHTML = `<a class="btn" href="${data.download}" target="_blank" rel="noopener">⬇️ Download hasil</a>`;
+  }
+});
+
+socket.on('done', data => {
+  setProgress(100);
+  statusMsg.textContent = 'Selesai — file siap di-download.';
+  showProcessing(false);
+  startBtn.disabled = false;
+  if(data && data.download){
+    downloadWrap.innerHTML = `<a class="btn" href="${data.download}" target="_blank" rel="noopener">⬇️ ${data.filename || 'Download'}</a>`;
+  }
+  beep(1200,0.14,'triangle',0.06);
+});
+
+socket.on('error', err => {
+  statusMsg.textContent = 'Error: ' + (err.message || JSON.stringify(err));
+  showProcessing(false); startBtn.disabled = false; beep(180,0.18,'sawtooth',0.09);
+});
+
+/* ---------- METRICS POLLING ---------- */
+async function fetchMetrics(){
+  try{
+    const res = await fetch('/metrics', {cache:'no-store'});
+    if(!res.ok) throw new Error('No metrics');
+    const d = await res.json();
+    // expected: { cpuLoad: "0.12", ramPercent: 34, uptimeMin: 12, diskPercent: 10 }
+    chipCpu.textContent = `CPU: ${d.cpuLoad}`;
+    chipRam.textContent = `RAM: ${d.ramPercent}%`;
+    chipUp.textContent = `Uptime: ${d.uptimeMin}m`;
+    chipLoad.textContent = `Load: ${d.loadAvg}`;
+    chipDisk.textContent = `Disk: ${d.diskPercent}%`;
+  }catch(e){
+    // silence - server might not provide metrics
+    // keep old values
+  }
+}
+fetchMetrics();
+setInterval(fetchMetrics, 5000);
+
+/* ---------- SMOOTH FALLBACK PROGRESS (if stuck) ---------- */
+let lastKnown = 0;
+setInterval(()=> {
+  const cur = parseFloat(progressFill.style.width) || 0;
+  if(cur < lastKnown) { // allow reduction only via events
+    // do nothing
+  } else {
+    lastKnown = cur;
+  }
+  // gentle grow if small
+  if(cur > 0 && cur < 98){
+    const bump = Math.min(98, cur + 0.4);
+    progressFill.style.width = bump + '%';
+  }
+}, 1200);
+
+/* ---------- TOUCH / COMPACT MODE adjustments ---------- */
+function applyCompactIfMobile(){
+  if(window.innerWidth <= 620){
+    document.querySelector('.container').style.padding = '12px';
+    document.querySelector('.title .name').style.fontSize = '15px';
+  }
+}
+applyCompactIfMobile();
+window.addEventListener('resize', applyCompactIfMobile);
+
+/* ---------- Final housekeeping ---------- */
+window.addEventListener('beforeunload', ()=> {
+  try{ socket.close(); }catch(e){}
+});
+</script>
+</body>
+  </html>
